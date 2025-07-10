@@ -6,7 +6,7 @@ CRUD(Create, Read, Update, Delete) 운영 시스템을 구축하고,
 
 고객 주문 데이터를 이메일 기준으로 통합 관리할 수 있는 플랫폼을 구현한 프로젝트입니다 !
 
-![Image](https://github.com/user-attachments/assets/9fb40579-df74-4981-8de7-67d273249f9c)
+<img src="https://github.com/user-attachments/assets/9fb40579-df74-4981-8de7-67d273249f9c" alt="Image" width="50%" />
 
 
 ---
@@ -18,7 +18,7 @@ CRUD(Create, Read, Update, Delete) 운영 시스템을 구축하고,
 
 ## 😈 팀원 소개
 | 이름 | 주요 역할 | 추가 세부 역할 | 파트 |
-|:-----:|:---------:|:--------------:|:----:|
+|:------:|:---------:|:--------------:|:----:|
 | [황성철](https://github.com/HwuanPage) | PM(프로젝트 매니저), UI 개발자 | 프로젝트 전체 관리 및 계획 수립, 전체 UI 개발 담당 | 전체 관리 |
 | [신현우](https://github.com/newname99) | UI 개발자 | 사용자인터페이스(UI) 화면 개발 및 최종 화면 완성 | 메인 페이지, 관리자 페이지 |
 | [진주열](https://github.com/JuYul-Jin) | 서버 개발자 | 주요 비즈니스 로직 보조 개발 및 API 구현 지원 | ITEM 클래스 |
@@ -44,31 +44,34 @@ CRUD(Create, Read, Update, Delete) 운영 시스템을 구축하고,
 ---
 
 ## 🔀 Flow Chart
-![Image](https://github.com/user-attachments/assets/0b2f6918-bf4b-4e13-adf9-f1cd55de1b29)
+<img src="https://github.com/user-attachments/assets/0b2f6918-bf4b-4e13-adf9-f1cd55de1b29" alt="Image" width="50%" />
 
 ---
 
 ## 💽 ERD
-![Image](https://github.com/user-attachments/assets/e5938e48-36d3-4c2a-ba9f-5e433325e3d5)
+<img src="https://github.com/user-attachments/assets/e5938e48-36d3-4c2a-ba9f-5e433325e3d5" alt="Image" width="80%" />
 
 ---
 
 ## 🧩 Class Diagram
-![Image](https://github.com/user-attachments/assets/8b98beb1-a665-4916-b4d5-59ee2379a080)
+<img src="https://github.com/user-attachments/assets/8b98beb1-a665-4916-b4d5-59ee2379a080" alt="Image" width="60%" />
 
 ---
 
 ## 📄 API 명세서
-![Image](https://github.com/user-attachments/assets/6626bf1c-6699-4694-8071-152e1aef2a19)
+<img src="https://github.com/user-attachments/assets/6626bf1c-6699-4694-8071-152e1aef2a19" alt="Image" width="100%" />
 
 ---
 
 ## 🛠️ 기술 스택
-![Image](https://github.com/user-attachments/assets/27a7ae2b-f72b-4680-9536-c185f16b8eea)
+<img src="https://github.com/user-attachments/assets/27a7ae2b-f72b-4680-9536-c185f16b8eea" alt="Image" width="70%" />
 
 ---
 
 ## 🛒 주요 기능별 화면
+
+<details>
+<summary>고객 기능</summary>
 
 ### 📌 주문 내역 작성 (고객)
 <img width="1608" alt="Image" src="https://github.com/user-attachments/assets/de435ecf-55e4-43d4-9152-3457b7f3081e" />
@@ -82,7 +85,10 @@ CRUD(Create, Read, Update, Delete) 운영 시스템을 구축하고,
 ### 📌 주문 내역 수정 (고객)
 <img width="1608" alt="Image" src="https://github.com/user-attachments/assets/96b64872-bfa9-41f6-be28-9d95fbb8d5e6" />
 
----
+</details>
+
+<details>
+<summary>관리자 기능</summary>
 
 ### 📌 메뉴 아이템 추가 (관리자)
 <img width="1608" alt="Image" src="https://github.com/user-attachments/assets/3ec212f0-afa7-4186-98cf-2de939baa881" />
@@ -95,3 +101,64 @@ CRUD(Create, Read, Update, Delete) 운영 시스템을 구축하고,
 
 ### 📌 주문 내역 조회 (관리자)
 <img width="1608" alt="Image" src="https://github.com/user-attachments/assets/b737166d-8302-4d52-b908-d6a2f00e6a19" />
+
+</details>
+
+## 💢 트러블 슈팅
+
+### 1. JPA 연관관계 무한 참조 문제
+
+#### 🚨 문제상황
+- `Orders`와 `OrderItems` 엔티티 간 양방향 연관관계로 인한 무한 참조 발생
+- JSON 직렬화 시 `Orders` → `OrderItems` → `Orders` → ... 무한 루프 생성
+- API 응답에서 StackOverflowError 또는 무한 JSON 생성으로 서버 성능 저하
+- 주문 내역 조회 API 호출 시 응답이 무한대로 늘어나는 현상
+
+#### 🔧 해결과정
+1. **문제 원인 분석**: JPA 양방향 연관관계에서 JSON 직렬화 시 순환 참조 발생 확인
+2. **해결책 검토**: `@JsonIgnore`, `@JsonManagedReference/@JsonBackReference`, DTO 패턴 등 비교
+3. **적용 및 테스트**: `@JsonIgnore` 어노테이션을 적용하여 순환 참조 차단
+
+    ```java
+    // OrderItems.java - @JsonIgnore 어노테이션 적용
+    @ManyToOne
+    @JsonIgnore  // JSON 직렬화에서 제외하여 순환 참조 방지
+    @JoinColumn(name = "orders_id")
+    private Orders orders;
+    ```
+
+#### ✅ 결과
+- JSON 직렬화 시 무한 참조 문제 완전 해결
+- 안정적인 주문 내역 조회 API 구현 완료
+- JPA 연관관계 매핑과 JSON 직렬화 이슈에 대한 깊이 있는 이해 습득
+---
+### 2. Git 협업 중 Merge Conflict 빈발
+
+#### 🚨 문제상황
+- 팀원 5명이 처음 진행하는 Git 협업에서 merge conflict가 빈번하게 발생
+- 같은 파일을 동시에 수정하거나 커밋 순서 문제로 인한 충돌 지속
+- 충돌 해결 방법을 모르는 팀원들로 인해 개발 진행 지연
+- 잘못된 merge로 인한 코드 손실 및 되돌리기 작업 반복
+
+#### 🔧 해결과정
+1. **Git 워크플로우 학습**
+    - Git 브랜치 전략 및 협업 방식 연구
+    - 팀원들과 함께 Git 기본 명령어 및 개념 학습
+
+2. **브랜치 전략 수립**
+    ```bash
+    # 브랜치 구조
+    main         # 배포용 안정 브랜치
+    develop      # 개발 통합 브랜치  
+    feature/*    # 기능별 개발 브랜치
+    ```
+
+#### ✅ 결과
+- merge conflict 발생률 감소
+- 안정적인 Git 협업 환경 구축으로 개발 효율성 향상
+- Pull Request를 통한 코드 리뷰 문화 정착으로 코드 품질 개선
+- 팀원 전체의 Git 워크플로우에 대한 실무적 이해 및 활용 능력 습득
+
+---
+
+
